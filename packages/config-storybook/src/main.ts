@@ -25,6 +25,10 @@ const config: StorybookConfig = {
 				return [plugin];
 			});
 		config.plugins = filterPlugins(config.plugins || []);
+		config.resolve = {
+			...(config.resolve || {}),
+			dedupe: [...new Set([...(config.resolve?.dedupe || []), '@lingui/core'])],
+		};
 		return config;
 	},
 };
