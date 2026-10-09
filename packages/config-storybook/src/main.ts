@@ -1,4 +1,5 @@
 import type { StorybookConfig } from '@storybook/sveltekit';
+import type { PluginOption } from 'vite';
 
 const config: StorybookConfig = {
 	stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|ts|svelte)'],
@@ -10,16 +11,20 @@ const config: StorybookConfig = {
 	staticDirs: ['../static'],
 	async viteFinal(config) {
 		// Storybook 9's Svelte docgen plugin stalls on .svelte story imports in this SDK.
-		config.plugins = (config.plugins || []).filter(
-			(plugin) =>
-				!(
+		const filterPlugins = (plugins: PluginOption[]): PluginOption[] =>
+			plugins.flatMap((plugin): PluginOption[] => {
+				if (Array.isArray(plugin)) return [filterPlugins(plugin)];
+				if (
 					typeof plugin === 'object' &&
 					plugin !== null &&
-					!Array.isArray(plugin) &&
 					'name' in plugin &&
 					plugin.name === 'storybook:svelte-docgen-plugin'
-				),
-		);
+				) {
+					return [];
+				}
+				return [plugin];
+			});
+		config.plugins = filterPlugins(config.plugins || []);
 		return config;
 	},
 };
